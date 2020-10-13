@@ -43,3 +43,42 @@ root@debian1:~# iptables -t nat -A PREROUTING -p tcp -d 192.168.0.141 --dport 80
 root@debian1:~# iptables -t nat -A POSTROUTING -p tcp -s 10.0.0.5 --sport 80 -j SNAT --to-source 192.168.0.141:80
 
 #================================= комп Debian2 (клиент)==========================================================
+root@debian2:/home/user# ip a
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host
+       valid_lft forever preferred_lft forever
+2: enp0s17: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 08:00:27:00:a8:9b brd ff:ff:ff:ff:ff:ff
+    inet 10.0.0.5/24 brd 10.0.0.255 scope global enp0s17
+       valid_lft forever preferred_lft forever
+    inet6 fe80::a00:27ff:fe00:a89b/64 scope link
+       valid_lft forever preferred_lft forever
+
+root@debian2:/home/user# nmap localhost
+Starting Nmap 7.70 ( https://nmap.org ) at 2020-10-13 16:23 +05
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.000050s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 998 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+
+Nmap done: 1 IP address (1 host up) scanned in 1.86 seconds
+
+root@debian2:~# apt install apache2
+
+root@debian2:/home/user# nmap localhost
+Starting Nmap 7.70 ( https://nmap.org ) at 2020-10-13 16:23 +05
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.000050s latency).
+Other addresses for localhost (not scanned): ::1
+Not shown: 998 closed ports
+PORT   STATE SERVICE
+22/tcp open  ssh
+80/tcp open  http
+
+Nmap done: 1 IP address (1 host up) scanned in 1.86 seconds
+
