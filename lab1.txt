@@ -37,6 +37,12 @@ root@debian1:~# echo 1 > /proc/sys/net/ipv4/ip_forward
 root@debian1:~# nano /etc/sysctl.conf
 net.ipv4.ip_forward=1
 
+
+iptables -A FORWARD -s 192.168.0.0/255.255.255.0 -i eth0 -o eth1 -m conntrack --ctstate NEW -j ACCEPT
+iptables -A FORWARD -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -A POSTROUTING -t nat -j MASQUERADE
+
+
 root@debian1:~# iptables -A FORWARD -i enp0s17 -o enp0s8 -j ACCEPT
 
 root@debian1:~# iptables -t nat -A PREROUTING -p tcp -d 192.168.0.141 --dport 80 -j DNAT --to-destination 10.0.0.5:80
