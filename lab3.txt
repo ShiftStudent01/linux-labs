@@ -1,0 +1,41 @@
+# создаём скрипт, который будет писать в файл
+user@debian2:/tmp$ > test.php
+
+# его содержимое
+user@debian2:/tmp$ cat test.php
+<?php
+$handle = fopen("/tmp/myfile", "a");
+while(1) {
+        fwrite($handle, date('h:i:s')."\n");
+        sleep(1);
+}
+fclose($handle);
+
+# запускаем скрипт
+user@debian2:/tmp$ php test.php
+
+# на другом терминале
+# ищем с помощью lsof
+root@debian2:/opt# lsof | grep '/tmp/myfile'
+php       26657                           user    3w      REG              254,0     9711     265851 /tmp/myfile
+
+# и вручную с помощью /proc
+
+# находим номер процесса
+root@debian2:/proc# ps ax | grep 'test.php'
+26657 pts/1    S+     0:00 php test.php
+26666 pts/0    S+     0:00 grep test.php
+
+# находим наш открытый файл
+root@debian2:/opt# ls -l /proc/26657/fd/
+total 0
+lrwx------ 1 user user 64 Oct 18 22:28 0 -> /dev/pts/1
+lrwx------ 1 user user 64 Oct 18 22:28 1 -> /dev/pts/1
+lrwx------ 1 user user 64 Oct 18 22:28 2 -> /dev/pts/1
+l-wx------ 1 user user 64 Oct 18 22:28 3 -> /tmp/myfile
+
+# Вывод: lsof гораздо удобнее.
+
+#====================================================================================================================
+#===== С докером никогда не работал, только слышал о нём, на изучение требуется время, которого пока никак не хватает,
+#===== постараюсь прислать работу по нему попозже :)
